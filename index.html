@@ -259,8 +259,8 @@
                 //=== XLSDK Load & Init(避免緩存作法) ===
                 const script = document.createElement('script');
                 script.id = 'xlsdk';
-                script.src = `./src/xlsdk_web.js?v=${Date.now()}`;
-                //script.src = `./dist/xlsdk_web.min.js?v=${Date.now()}`;
+                //script.src = `./src/xlsdk_web.js?v=${Date.now()}`;
+                script.src = `./dist/xlsdk_web.min.js?v=${Date.now()}`;
                 script.onload = function() {
                   XLSDK.initWithModule(unityInstance, () => {
                     console.log('Do C# setNativeCallback here!');
