@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | xlsdk</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+  </head>
+  <body>
+    <div id="unity-container" class="unity-desktop">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <div id="unity-build-title">xlsdk</div>
+      </div>
+    </div>
+
+    <!-- 聊天機器人 : start -->
+    <script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>  
+    <script src="/webchat/v2.1/config.js"></script>
+    <!-- 聊天機器人 : end -->
+
+    <!-- <script src="https://cdn.botpress.cloud/webchat/v2.3/inject.js"></script>  -->
+    <script>
+    /*
+    window.botpress.init({
+      "botId": "c2e07c46-c069-4b75-8a62-572acb60ab69",
+      "configuration": {
+        "composerPlaceholder": "Hi, how can i help you AAA ?",
+        "botName": "Glory Destiny - REBORN AI",
+        "botAvatar": "https://files.bpcontent.cloud/2025/03/04/10/20250304102724-NZF9ABD4.png",
+        "botDescription": "協助你探索 Glory Destiny 的世界（內容僅為參考，請留意 LLM 幻覺）",
+        "website": {
+          "title": "https://www.x-legend.com/online/glorydestiny-reborn/zh-hant/",
+          "link": "https://www.x-legend.com/online/glorydestiny-reborn/zh-hant/"
+        },
+        "email": {
+          "title": "cs@x-legend.com.tw",
+          "link": "cs@x-legend.com.tw"
+        },
+        "phone": {
+          "title": "+88677186620",
+          "link": "+88677186620"
+        },
+        "termsOfService": {
+          "title": "https://www.x-legend.com/license/terms/",
+          "link": "https://www.x-legend.com/license/terms/"
+        },
+        "privacyPolicy": {
+          "title": "https://www.x-legend.com/license/privacy",
+          "link": "https://www.x-legend.com/license/privacy"
+        },
+        "color": "#2563eb",
+        "variant": "solid",
+        "themeMode": "light",
+        "fontFamily": "rubik",
+        "radius": 2,
+        "showPoweredBy": true
+      },
+      "clientId": "ed3de69f-5492-48a2-9c62-d826d34ffd51"
+    });
+    */
+
+    /*
+    // 觸發 Botpress 後台事件 
+    // https://github.com/botpress/docs/blob/master/webchat/interact/send-custom-events/to-webchat.mdx
+    const payload = {
+      event: 'feedback',
+      data: '100',
+    }
+    */
+    async function sendBotpressTriggerEvent(payload) {
+      try {
+        await window.botpress.sendEvent(payload)
+        console.log('Custom Tigger Success:', payload);
+        return true;
+      } catch (error) {
+        console.error('Custom Tigger Fail:', error);
+        return false;
+      }
+    }
+
+    // 等 webchat 載入完再把按鈕塞進 footer 
+    // https://github.com/botpress/docs/blob/master/webchat/interact/listen-to-events.mdx
+    window.botpress.on('webchat:ready', (conversationId) => {
+      console.log('Webchat is ready: ', conversationId);
+        // Insert your code here
+    });
+
+    window.botpress.on('webchat:opened', (conversationId) => {
+      console.log('Webchat is opened: ', conversationId);
+      // 1. 取得 <iframe name="webchat">
+      const chatIframe = document.querySelector('iframe[name="webchat"]');
+      // 2. 拿到它的文件（contentDocument）
+      //    注意：Botpress inject.js 產生的 iframe 預設沒有跨域問題，
+      //    所以 contentDocument 可正常存取
+      const chatDoc = chatIframe.contentDocument || chatIframe.contentWindow.document;
+      // 3. 再從 chatDoc 裡選 .bpComposerInputContainer
+      const footer = chatDoc.querySelector('.bpComposerInputContainer');
+      if (!footer.querySelector('.feedback-buttons')) {
+        const btns = document.createElement('div');
+        btns.className = 'feedback-buttons';
+        btns.innerHTML = `
+          <button id="fb-positive"> 👍 </button>
+          <button id="fb-negative"> 👎 </button>
+        `
+        btns.style.display = 'flex';
+        btns.style.alignItems = 'center';
+        btns.style.marginLeft = 'auto';
+        btns.style.gap        = '10px';
+        // 鼠標 hover／點擊 動態效果
+        Array.from(btns.children).forEach(btn => {
+          // 套用過渡效果
+          btn.style.transition = 'transform 0.15s ease, box-shadow 0.15s ease';
+
+          // hover：放大＋陰影
+          btn.addEventListener('mouseover', () => {
+            btn.style.transform   = 'scale(1.1)';
+            btn.style.boxShadow   = '0 2px 6px rgba(0,0,0,0.2)';
+          });
+          btn.addEventListener('mouseout', () => {
+            btn.style.transform   = 'scale(1)';
+            btn.style.boxShadow   = 'none';
+          });
+
+          // mousedown / mouseup：點擊時縮小
+          btn.addEventListener('mousedown', () => {
+            btn.style.transform = 'scale(0.9)';
+          });
+          btn.addEventListener('mouseup', () => {
+            // 這邊判斷如果滑鼠還在按鈕上就回到 hover 狀態
+            btn.style.transform = btn.matches(':hover') ? 'scale(1.1)' : 'scale(1)';
+          });
+        });
+
+        //footer.insertBefore(btns, footer.firstChild); //放前面
+        footer.appendChild(btns); //放後面
+
+        btns.querySelector('#fb-positive').addEventListener('click', () => {
+          sendBotpressTriggerEvent({
+            event: 'feedback',
+            data: '100',
+          });
+
+        })
+        btns.querySelector('#fb-negative').addEventListener('click', () => {
+          sendBotpressTriggerEvent({
+            event: 'feedback',
+            data: '0',
+          });
+        })
+
+      }
+    });
+    window.botpress.on('customEvent', (event) => {
+        console.log('Custom event triggered: ', event);
+        // Insert your code here
+    });
+    </script> 
+   
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/WebGLBuild.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/WebGLBuild.data.gz",
+        frameworkUrl: buildUrl + "/WebGLBuild.framework.js.gz",
+        codeUrl: buildUrl + "/WebGLBuild.wasm.gz",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "xlegend",
+        productName: "xlsdk",
+        productVersion: "1.0",
+        showBanner: unityShowBanner,
+      };
+
+      // By default, Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+
+      } else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+
+        canvas.style.width = "960px";
+        canvas.style.height = "600px";
+      }
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+              }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+                fullscreenButton.onclick = () => {
+                  //unityInstance.SetFullscreen(1);
+                  XLSDK.Native_test();
+                };
+
+                //=== XLSDK Load & Init(避免緩存作法) ===
+                const script = document.createElement('script');
+                script.id = 'xlsdk';
+                script.src = `./src/xlsdk_web.js?v=${Date.now()}`;
+                //script.src = `./dist/xlsdk_web.min.js?v=${Date.now()}`;
+                script.onload = function() {
+                  XLSDK.initWithModule(unityInstance, () => {
+                    console.log('Do C# setNativeCallback here!');
+                  });
+                };
+                document.head.appendChild(script);
+                //======
+
+              }).catch((message) => {
+                alert(message);
+              });
+            };
+
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
